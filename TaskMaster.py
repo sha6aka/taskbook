@@ -2,11 +2,11 @@
 from PyQt5 import QtCore, QtGui
 from PyQt5.QtCore import QRegExp, QRect, Qt
 from PyQt5.QtWidgets import *
-import sqlite3
-import os
+import db
 
 
 class Ui_MainWindow(object):
+
     def __init__(self):
         self.centralwidget = QWidget(MainWindow)
 
@@ -40,7 +40,7 @@ class Ui_MainWindow(object):
         MainWindow.setMinimumSize(QtCore.QSize(1024, 600))
         MainWindow.setMaximumSize(QtCore.QSize(1024, 600))
         MainWindow.setBaseSize(QtCore.QSize(1024, 600))
-        MainWindow.setWindowTitle("TaskMaster v0.2")
+        MainWindow.setWindowTitle("TaskMaster v0.3")
         self.centralwidget.setObjectName("centralwidget")
 
         # Таблица данных по заявке
@@ -139,22 +139,14 @@ class Ui_MainWindow(object):
 
     # Создание заявки
     def create_task(self):
-        task = self.field_NewTaskNumber.text()
-        if task == "" or None:
-            error_msg("error_1")
+        tasknum = self.field_NewTaskNumber.text()
+        if tasknum == "" or None:
+            db.error_msg("error_1")
         else:
-            try:
-                cursor.execute("INSERT INTO tasks (tasknum, archive, date, last_update) "
-                               "VALUES ({}, 0, datetime('now', 'localtime'), datetime('now', 'localtime'));".format(task))
-                cursor.execute("INSERT INTO taskdata (tasknum, text, date) "
-                               "VALUES ({}, \"Заявка добавлена\", datetime('now', 'localtime'))".format(task))
-            except sqlite3.DatabaseError as e:
-                error_msg(e.args[0])
-            else:
-                conn.commit()
-                self.field_NewTaskNumber.clear()
-                self.get_task_list("tasknum")
-                # добавить фокусировку на добавленном номере
+            db.query_create_task(tasknum)
+            self.field_NewTaskNumber.clear()
+            self.get_task_list("tasknum")
+            # добавить фокусировку на добавленном номере
 
     # Удаление заявки
     def delete_task(self):
@@ -165,191 +157,78 @@ class Ui_MainWindow(object):
             msgBox_text = "Предупреждение: Заявка будет удалена вместе со всеми данными. Продолжить?"
             msgBox_reply = QMessageBox.question(self, msgBox_title, msgBox_text, QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
             if msgBox_reply == QMessageBox.Yes:"""
-            task = self.list_CurrentTasks.currentItem().text()
-            try:
-                cursor.execute("DELETE FROM tasks WHERE tasknum = {};".format(task))
-                cursor.execute("DELETE FROM taskdata WHERE tasknum = {};".format(task))
-            except sqlite3.DatabaseError as e:
-                error_msg(e.args[0])
-            else:
-                conn.commit()
-                self.get_task_list("tasknum")
-                # добавить фокусировку на 1й строке и проверку ее существования
-                # self.list_CurrentTasks.setCurrentRow(0)
-                # self.get_task_data()
+            tasknum = self.list_CurrentTasks.currentItem().text()
+            db.query_delete_task(tasknum)
+            self.get_task_list("tasknum")
+            # добавить фокусировку на 1й строке и проверку ее существования
+            # self.list_CurrentTasks.setCurrentRow(0)
+            # self.get_task_data()
         else:
-            error_msg("error_2")
+            db.error_msg("error_2")
 
     # Архивация заявок
     def button_archive_task(self):
         # Добавить вопрос "да/нет"
         self.view_TaskData.setRowCount(0)
         if self.list_CurrentTasks.currentItem() is not None:
-            task = self.list_CurrentTasks.currentItem().text()
-            try:
-                arch = cursor.execute("SELECT archive FROM tasks WHERE tasknum = {};".format(task)).fetchone()
-                self.db_archive_task(task, arch[0])
-            except sqlite3.DatabaseError as e:
-                error_msg(e.args[0])
+            tasknum = self.list_CurrentTasks.currentItem().text()
+            arch = db.query_check_arch(tasknum)
+            if arch == 0:
+                db.query_arch_unarch(tasknum, 1, "Заявка добавлена в архив")
             else:
-                self.get_task_list("tasknum")
+                db.query_arch_unarch(tasknum, 0, "Заявка убрана из архива")
+            self.get_task_list("tasknum")
         else:
-            error_msg("error_5")
-
-    def db_archive_task(self, task, archive):
-        if archive == 0:
-            text = "Заявка добавлена в архив"
-            code = 1
-        else:
-            text = "Заявка убрана из архива"
-            code = 0
-        try:
-            cursor.execute("""UPDATE tasks SET archive = ? WHERE tasknum = ?;""", (code, task))
-            cursor.execute("""INSERT INTO taskdata (tasknum, text, date)
-                              VALUES (?, ?, datetime('now', 'localtime'));""", (task, text))
-            cursor.execute("""UPDATE tasks
-                              SET last_update = datetime('now', 'localtime')
-                              WHERE tasknum = {};""".format(task))
-        except sqlite3.DatabaseError as e:
-            error_msg(e.args[0])
-        else:
-            conn.commit()
+            db.error_msg("error_5")
 
     # Получить/обновить список заявок
     def get_task_list(self, ident):
         self.list_CurrentTasks.clear()
-        try:
-            a = cursor.execute("SELECT tasknum FROM tasks WHERE archive = 0 ORDER BY {} DESC;".format(ident))
-        except sqlite3.DatabaseError as e:
-            error_msg(e.args[0])
-        else:
-            for elem in a:
-                self.list_CurrentTasks.addItem(str(elem[0]))
-        try:
-            a = cursor.execute("SELECT tasknum FROM tasks WHERE archive = 1 ORDER BY {} DESC;".format(ident))
-        except sqlite3.DatabaseError as e:
-            error_msg(e.args[0])
-        else:
-            for elem in a:
-                self.list_CurrentTasks.addItem(str(elem[0]))
+        for elem in db.query_tasks_list(ident, 0):
+            self.list_CurrentTasks.addItem(str(elem[0]))
+        for elem in db.query_tasks_list(ident, 1):
+            self.list_CurrentTasks.addItem(str(elem[0]))
 
     # Получить данные по заявке
     def get_task_data(self):
         self.view_TaskData.setRowCount(0)
         if self.list_CurrentTasks.currentItem() is not None:
-            task = self.list_CurrentTasks.currentItem().text()
-            try:
-                a = cursor.execute("""SELECT _id, text, strftime('%d.%m.%Y   %H:%M:%S', date)
-                                      FROM taskdata WHERE tasknum = {} ORDER BY date;""".format(task))
-            except sqlite3.DatabaseError as e:
-                error_msg(e.args[0])
-            else:
-                for elem in a:
-                    self.set_text_area(elem[0], elem[1], elem[2])
-                    # добавить фокусировку на первой записи
-
-    # Формирование строки в поле с данными
-    def set_text_area(self, elemid, elemtext, elemtime):
-        self.view_TaskData.insertRow(0)
-        self.view_TaskData.setItem(0, 0, QTableWidgetItem(elemid))
-        self.view_TaskData.setItem(0, 1, QTableWidgetItem(elemtext))
-        self.view_TaskData.setItem(0, 2, QTableWidgetItem(elemtime))
-        self.view_TaskData.resizeRowToContents(0)
+            tasknum = self.list_CurrentTasks.currentItem().text()
+            for elem in db.query_taskdata_get(tasknum):
+                self.view_TaskData.insertRow(0)
+                self.view_TaskData.setItem(0, 0, QTableWidgetItem(elem[0]))
+                self.view_TaskData.setItem(0, 1, QTableWidgetItem(elem[1]))
+                self.view_TaskData.setItem(0, 2, QTableWidgetItem(elem[2]))
+                self.view_TaskData.resizeRowToContents(0)
+                # добавить фокусировку на первой записи
 
     # Добавить данные в заявку
     def add_task_data(self):
         if self.list_CurrentTasks.currentItem() is not None:
-            task = self.list_CurrentTasks.currentItem().text()
+            tasknum = self.list_CurrentTasks.currentItem().text()
             text = self.field_AddTaskData.toPlainText()
             if text != "" or None:
-                try:
-                    cursor.execute("""INSERT INTO taskdata (tasknum, text, date)
-                                      VALUES ({}, '{}', datetime('now', 'localtime'));""".format(task, text))
-                    cursor.execute("""UPDATE tasks
-                                      SET last_update = datetime('now', 'localtime')
-                                      WHERE tasknum = {};""".format(task))
-                except sqlite3.DatabaseError as e:
-                    error_msg(e.args[0])
-                else:
-                    conn.commit()
-                    self.field_AddTaskData.clear()
-                    self.get_task_data()
+                db.query_taskdata_add(tasknum, text)
+                self.field_AddTaskData.clear()
+                self.get_task_data()
             else:
-                error_msg("error_3")
+                db.error_msg("error_3")
         else:
-            error_msg("error_4")
+            db.error_msg("error_4")
 
     # Удалить данные из заявки
     def delete_task_data(self):
-        try:
-            error_msg(self.view_TaskData.currentRow())
-            taskid = self.view_TaskData.QTableWidgetItem(self.view_TaskData.currentRow(), 1)
-            error_msg(taskid)
-            cursor.execute("DELETE FROM taskdata WHERE _id = {}".format(taskid))
-            conn.commit()
-        except sqlite3.DatabaseError as e:
-            error_msg(e.args[0])
-
-
-# Окно с ошибками
-def error_msg(e):
-    dct = {
-        # Работа с заявками
-        "error_1": "Пустой номер заявки",
-        "error_2": "Выберите заявку для удаления",
-        "error_5": "Выберите заявку для архивации/разархивации",
-        # Работа с данными заявки
-        "error_3": "Введите текст по заявке",
-        "error_4": "Выберите заявку"
-    }
-    msgBox = QMessageBox()
-    msgBox.setWindowTitle("Сообщение об ошибке")
-    if dct.get(e) is not None:
-        msgBox.setText("Ошибка: " + dct[e])
-    else:
-        msgBox.setText("Ошибка: " + e)
-    msgBox.setStandardButtons(QMessageBox.Ok)
-    msgBox.exec()
-
-
-# Подключение/создание к БД
-def connect_db():
-    global conn, cursor
-    db = "db.sqlite"
-    if os.path.exists(db):
-        conn = sqlite3.connect(db)
-        cursor = conn.cursor()
-    else:
-        # tasks - id, номер заявки, статус архивности, дата создания, дата последнего обновления
-        # taskdata - id, номер заявки, текст, дата создания записи
-        conn = sqlite3.connect(db)
-        cursor = conn.cursor()
-        try:
-            cursor.executescript("""CREATE TABLE tasks (
-                                    _id integer primary key autoincrement,
-                                    tasknum integer not null unique,
-                                    archive integer,
-                                    date datetime default current_timestamp,
-                                    last_update datetime default current_timestamp);
-
-                                    CREATE TABLE taskdata (
-                                    _id integer primary key autoincrement,
-                                    tasknum integer not null,
-                                    text char(512),
-                                    date datetime default current_timestamp);""")
-        except sqlite3.DatabaseError as e:
-            error_msg(e.args[0])
-        except sqlite3.Error as e:
-            error_msg(e.args[0])
-        except os.error as e:
-            error_msg(e.args[0])
+        if self.view_TaskData.selectedItems() is not None:
+            taskid = self.view_TaskData.rowAt()
+            db.query_taskdata_delete(taskid)
+            self.get_task_data()
         else:
-            conn.commit()
+            db.error_msg("error_4")
 
 
 if __name__ == "__main__":
     import sys
-    connect_db()
+    db.db_connect()
     app = QApplication(sys.argv)
     MainWindow = QMainWindow()
     ui = Ui_MainWindow()
