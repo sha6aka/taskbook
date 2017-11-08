@@ -10,11 +10,11 @@ class Ui_MainWindow(object):
     def __init__(self):
         self.centralwidget = QWidget(MainWindow)
 
-        self.button_AddTaskData = QPushButton(self.centralwidget)
-        self.button_DeleteTaskData = QPushButton(self.centralwidget)
-        self.field_AddTaskData = QTextEdit(self.centralwidget)
-        self.view_TaskData = QTableWidget(self.centralwidget)
-        self.group_CurrentTasks = QGroupBox(self.centralwidget)
+        self.button_Addtdata = QPushButton(self.centralwidget)
+        self.button_Deletetdata = QPushButton(self.centralwidget)
+        self.field_Addtdata = QTextEdit(self.centralwidget)
+        self.view_tdata = QTableWidget(self.centralwidget)
+        self.group_CurrentTlist = QGroupBox(self.centralwidget)
         self.group_Work = QGroupBox(self.centralwidget)
 
         self.button_AddTask = QPushButton(self.group_Work)
@@ -22,7 +22,7 @@ class Ui_MainWindow(object):
         self.button_ArchiveTask = QPushButton(self.group_Work)
         self.button_Sort = QComboBox(self.group_Work)
         self.field_NewTaskNumber = QLineEdit(self.group_Work)
-        self.list_CurrentTasks = QListWidget(self.group_CurrentTasks)
+        self.list_CurrentTlist = QListWidget(self.group_CurrentTlist)
 
         self.menuBar = QMenuBar(MainWindow)
         self.menu = QMenu(self.menuBar)
@@ -40,23 +40,23 @@ class Ui_MainWindow(object):
         MainWindow.setMinimumSize(QtCore.QSize(1024, 600))
         MainWindow.setMaximumSize(QtCore.QSize(1024, 600))
         MainWindow.setBaseSize(QtCore.QSize(1024, 600))
-        MainWindow.setWindowTitle("TaskMaster v0.3")
+        MainWindow.setWindowTitle("TaskMaster v0.4")
         self.centralwidget.setObjectName("centralwidget")
 
         # Таблица данных по заявке
-        self.view_TaskData.setGeometry(QRect(210, 10, 801, 471))
-        self.view_TaskData.setObjectName("view_TaskData")
-        self.view_TaskData.setColumnCount(3)
-        self.view_TaskData.setColumnWidth(0, 0)
-        self.view_TaskData.setColumnWidth(1, 662)
-        self.view_TaskData.setColumnWidth(2, 120)
-        self.view_TaskData.hideColumn(0)
-        self.view_TaskData.setRowCount(0)
-        self.view_TaskData.verticalHeader().hide()
+        self.view_tdata.setGeometry(QRect(210, 10, 801, 471))
+        self.view_tdata.setObjectName("view_tdata")
+        self.view_tdata.setColumnCount(3)
+        self.view_tdata.setColumnWidth(0, 0)
+        self.view_tdata.setColumnWidth(1, 662)
+        self.view_tdata.setColumnWidth(2, 120)
+        self.view_tdata.hideColumn(0)
+        self.view_tdata.setRowCount(0)
+        self.view_tdata.verticalHeader().hide()
         item = QTableWidgetItem()
-        self.view_TaskData.setHorizontalHeaderItem(1, item)
+        self.view_tdata.setHorizontalHeaderItem(1, item)
         item = QTableWidgetItem()
-        self.view_TaskData.setHorizontalHeaderItem(2, item)
+        self.view_tdata.setHorizontalHeaderItem(2, item)
         # добавить фиксированную ширину столбцов
         # добавить автоматическое увеличение в высоту под весь текст
         # сделать поля нередактируемыми
@@ -83,18 +83,18 @@ class Ui_MainWindow(object):
         self.button_Sort.addItem("")
 
         # Текущие и архивные заявки
-        self.group_CurrentTasks.setGeometry(QRect(10, 116, 190, 456))
-        self.group_CurrentTasks.setObjectName("group_CurrentTasks")
-        self.list_CurrentTasks.setGeometry(QRect(0, 16, 190, 439))
-        self.list_CurrentTasks.setObjectName("list_CurrentTasks")
+        self.group_CurrentTlist.setGeometry(QRect(10, 116, 190, 456))
+        self.group_CurrentTlist.setObjectName("group_CurrentTlist")
+        self.list_CurrentTlist.setGeometry(QRect(0, 16, 190, 439))
+        self.list_CurrentTlist.setObjectName("list_CurrentTlist")
 
         # Добавление и работа с данными по заявке
-        self.field_AddTaskData.setGeometry(QRect(210, 490, 701, 81))
-        self.field_AddTaskData.setObjectName("field_AddTaskData")
-        self.button_AddTaskData.setGeometry(QRect(924, 520, 91, 51))
-        self.button_AddTaskData.setObjectName("button_AddTaskData")
-        self.button_DeleteTaskData.setGeometry(QRect(924, 490, 91, 21))
-        self.button_DeleteTaskData.setObjectName("button_DeleteTaskData")
+        self.field_Addtdata.setGeometry(QRect(210, 490, 701, 81))
+        self.field_Addtdata.setObjectName("field_Addtdata")
+        self.button_Addtdata.setGeometry(QRect(924, 520, 91, 51))
+        self.button_Addtdata.setObjectName("button_Addtdata")
+        self.button_Deletetdata.setGeometry(QRect(924, 490, 91, 21))
+        self.button_Deletetdata.setObjectName("button_Deletetdata")
 
         # Меню
         self.menuBar.setGeometry(QtCore.QRect(0, 0, 1024, 21))
@@ -108,8 +108,8 @@ class Ui_MainWindow(object):
         # Нажатия на кнопку
         self.button_AddTask.clicked.connect(self.create_task)
         self.button_DeleteTask.clicked.connect(self.delete_task)
-        self.list_CurrentTasks.clicked.connect(self.get_task_data)
-        self.button_AddTaskData.clicked.connect(self.add_task_data)
+        self.list_CurrentTlist.clicked.connect(self.get_task_data)
+        self.button_Addtdata.clicked.connect(self.add_task_data)
         self.button_ArchiveTask.clicked.connect(self.button_archive_task)
 
         # Остальное
@@ -117,15 +117,15 @@ class Ui_MainWindow(object):
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
         self.get_task_list("tasknum")
-        self.list_CurrentTasks.setCurrentRow(0)
+        self.list_CurrentTlist.setCurrentRow(0)
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
-        self.view_TaskData.horizontalHeaderItem(1).setText(_translate("MainWindow", "Текст заметки"))
-        self.view_TaskData.horizontalHeaderItem(2).setText(_translate("MainWindow", "Дата и время"))
-        self.button_AddTaskData.setText(_translate("MainWindow", "Добавить\nзапись"))
-        self.button_DeleteTaskData.setText(_translate("MainWindow", "Удалить запись"))
-        self.group_CurrentTasks.setTitle(_translate("MainWindow", "Список заявок"))
+        self.view_tdata.horizontalHeaderItem(1).setText(_translate("MainWindow", "Текст заметки"))
+        self.view_tdata.horizontalHeaderItem(2).setText(_translate("MainWindow", "Дата и время"))
+        self.button_Addtdata.setText(_translate("MainWindow", "Добавить\nзапись"))
+        self.button_Deletetdata.setText(_translate("MainWindow", "Удалить запись"))
+        self.group_CurrentTlist.setTitle(_translate("MainWindow", "Список заявок"))
         self.button_AddTask.setText(_translate("MainWindow", "Добавить"))
         self.button_DeleteTask.setText(_translate("MainWindow", "Удалить"))
         self.button_ArchiveTask.setText(_translate("MainWindow", "В/из архива"))
@@ -141,7 +141,7 @@ class Ui_MainWindow(object):
     def create_task(self):
         tasknum = self.field_NewTaskNumber.text()
         if tasknum == "" or None:
-            db.error_msg("error_1")
+            db.message("error_1")
         else:
             db.query_create_task(tasknum)
             self.field_NewTaskNumber.clear()
@@ -150,28 +150,28 @@ class Ui_MainWindow(object):
 
     # Удаление заявки
     def delete_task(self):
-        self.view_TaskData.setRowCount(0)
-        if self.list_CurrentTasks.currentItem() is not None:
+        self.view_tdata.setRowCount(0)
+        if self.list_CurrentTlist.currentItem() is not None:
             """Добавить вопрос "да/нет"
             msgBox_title = "Сообщение об ошибке"
             msgBox_text = "Предупреждение: Заявка будет удалена вместе со всеми данными. Продолжить?"
             msgBox_reply = QMessageBox.question(self, msgBox_title, msgBox_text, QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
             if msgBox_reply == QMessageBox.Yes:"""
-            tasknum = self.list_CurrentTasks.currentItem().text()
+            tasknum = self.list_CurrentTlist.currentItem().text()
             db.query_delete_task(tasknum)
             self.get_task_list("tasknum")
             # добавить фокусировку на 1й строке и проверку ее существования
-            # self.list_CurrentTasks.setCurrentRow(0)
+            # self.list_CurrentTlist.setCurrentRow(0)
             # self.get_task_data()
         else:
-            db.error_msg("error_2")
+            db.message("error_2")
 
     # Архивация заявок
     def button_archive_task(self):
         # Добавить вопрос "да/нет"
-        self.view_TaskData.setRowCount(0)
-        if self.list_CurrentTasks.currentItem() is not None:
-            tasknum = self.list_CurrentTasks.currentItem().text()
+        self.view_tdata.setRowCount(0)
+        if self.list_CurrentTlist.currentItem() is not None:
+            tasknum = self.list_CurrentTlist.currentItem().text()
             arch = db.query_check_arch(tasknum)
             if arch == 0:
                 db.query_arch_unarch(tasknum, 1, "Заявка добавлена в архив")
@@ -179,51 +179,51 @@ class Ui_MainWindow(object):
                 db.query_arch_unarch(tasknum, 0, "Заявка убрана из архива")
             self.get_task_list("tasknum")
         else:
-            db.error_msg("error_5")
+            db.message("error_5")
 
     # Получить/обновить список заявок
     def get_task_list(self, ident):
-        self.list_CurrentTasks.clear()
-        for elem in db.query_tasks_list(ident, 0):
-            self.list_CurrentTasks.addItem(str(elem[0]))
-        for elem in db.query_tasks_list(ident, 1):
-            self.list_CurrentTasks.addItem(str(elem[0]))
+        self.list_CurrentTlist.clear()
+        for elem in db.query_tlist_getlist(ident, 0):
+            self.list_CurrentTlist.addItem(str(elem[0]))
+        for elem in db.query_tlist_getlist(ident, 1):
+            self.list_CurrentTlist.addItem(str(elem[0]))
 
     # Получить данные по заявке
     def get_task_data(self):
-        self.view_TaskData.setRowCount(0)
-        if self.list_CurrentTasks.currentItem() is not None:
-            tasknum = self.list_CurrentTasks.currentItem().text()
-            for elem in db.query_taskdata_get(tasknum):
-                self.view_TaskData.insertRow(0)
-                self.view_TaskData.setItem(0, 0, QTableWidgetItem(elem[0]))
-                self.view_TaskData.setItem(0, 1, QTableWidgetItem(elem[1]))
-                self.view_TaskData.setItem(0, 2, QTableWidgetItem(elem[2]))
-                self.view_TaskData.resizeRowToContents(0)
+        self.view_tdata.setRowCount(0)
+        if self.list_CurrentTlist.currentItem() is not None:
+            tasknum = self.list_CurrentTlist.currentItem().text()
+            for elem in db.query_tdata_get(tasknum):
+                self.view_tdata.insertRow(0)
+                self.view_tdata.setItem(0, 0, QTableWidgetItem(elem[0]))
+                self.view_tdata.setItem(0, 1, QTableWidgetItem(elem[1]))
+                self.view_tdata.setItem(0, 2, QTableWidgetItem(elem[2]))
+                self.view_tdata.resizeRowToContents(0)
                 # добавить фокусировку на первой записи
 
     # Добавить данные в заявку
     def add_task_data(self):
-        if self.list_CurrentTasks.currentItem() is not None:
-            tasknum = self.list_CurrentTasks.currentItem().text()
-            text = self.field_AddTaskData.toPlainText()
+        if self.list_CurrentTlist.currentItem() is not None:
+            tasknum = self.list_CurrentTlist.currentItem().text()
+            text = self.field_Addtdata.toPlainText()
             if text != "" or None:
-                db.query_taskdata_add(tasknum, text)
-                self.field_AddTaskData.clear()
+                db.query_tdata_add(tasknum, text)
+                self.field_Addtdata.clear()
                 self.get_task_data()
             else:
-                db.error_msg("error_3")
+                db.message("error_3")
         else:
-            db.error_msg("error_4")
+            db.message("error_4")
 
     # Удалить данные из заявки
     def delete_task_data(self):
-        if self.view_TaskData.selectedItems() is not None:
-            taskid = self.view_TaskData.rowAt()
-            db.query_taskdata_delete(taskid)
+        if self.view_tdata.selectedItems() is not None:
+            taskid = self.view_tdata.rowAt()
+            db.query_tdata_delete(taskid)
             self.get_task_data()
         else:
-            db.error_msg("error_4")
+            db.message("error_4")
 
 
 if __name__ == "__main__":
